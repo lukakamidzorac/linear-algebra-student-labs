@@ -77,10 +77,12 @@ def lu_factorisation(A):
     if n != m:
         raise ValueError(f"Matrix A is not square {A.shape=}")
 
-    # construct arrays of zeros with dtype float
-    L, U = np.zeros_like(A, dtype=float), np.zeros_like(A, dtype=float)
-
-    # TODO: fill in L and U
+    U = A.astype(float)
+    L = np.eye(n)
+    for i in range(n - 1):
+        for j in range(i + 1, n):
+            L[j, i] = U[j, i] / U[i, i]
+            U[j, :] = U[j, :] - L[j, i] * U[i, :]
 
     return L, U
 
@@ -182,13 +184,30 @@ def runtime_comparison():
     matrix sizes, produce a log-log plot comparing the two, and save it
     to "plot.png" (the autograder looks for this exact filename).
     """
-    # TODO: implement the timing loop and plot, e.g.
-    # import time
-    # from matplotlib import pyplot as plt
-    #
-    # sizes = [2**j for j in range(1, 8)]
-    # ...
-    # plt.savefig("plot.png")
+    import time
+    from matplotlib import pyplot as plt
+
+    sizes = [2**j for j in range(1, 8)]
+    lu_times = []
+    ge_times = []
+
+    for n in sizes:
+        A, b, x = generate_safe_system(n)
+
+        start = time.perf_counter()
+        lu_factorisation(A)
+        lu_times.append(time.perf_counter() - start)
+
+        start = time.perf_counter()
+        gaussian_elimination(A, b)
+        ge_times.append(time.perf_counter() - start)
+
+    plt.loglog(sizes, lu_times, label="LU factorisation")
+    plt.loglog(sizes, ge_times, label="Gaussian elimination")
+    plt.xlabel("matrix size n")
+    plt.ylabel("time (s)")
+    plt.legend()
+    plt.savefig("plot.png")
 
 
 if __name__ == "__main__":
