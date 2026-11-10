@@ -55,15 +55,17 @@ def gram_schmidt_qr(A):
             R[i, j] = Q[:, i] @ A[:, j]
             v -= R[i, j] * Q[:, i]
         R[j, j] = np.linalg.norm(v)
-        if R[j, j] == 0:
-            raise ValueError("A is singular to working precision")
         Q[:, j] = v / R[j, j]
 
     return Q, R
 
 
 def _exact_Q_2x2(A):
-    """Stable reference Q for a 2x2 matrix (see module docstring)."""
+    """
+    Stable reference Q for a 2x2 matrix: q1 = a1/||a1|| and q2 is q1
+    rotated by 90 degrees, with the sign chosen so that r22 > 0. No
+    cancellation happens, so this is accurate to machine precision.
+    """
     a1 = A[:, 0]
     q1 = a1 / np.linalg.norm(a1)
     perp = np.array([-q1[1], q1[0]])  # det([q1, perp]) = +1
